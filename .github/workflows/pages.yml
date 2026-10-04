@@ -1,21 +1,15 @@
 name: Deploy Pages
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: '17 * * * *'
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
   group: pages
   cancel-in-progress: true
-
 jobs:
   deploy:
     environment:
@@ -23,90 +17,43 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Verify source lock
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          lock=json.loads(Path('SOURCE.json').read_text()); sha=lock.get('source_commit','')
-          if lock.get('role')!='entrypoint': raise SystemExit('SOURCE.json must declare role=entrypoint')
-          if len(sha)!=40 or any(c not in '0123456789abcdef' for c in sha.lower()): raise SystemExit('SOURCE.json contains an invalid source_commit')
-          for name in ('index.html','PRODUCTION.md'):
-              if sha not in Path(name).read_text(): raise SystemExit(f'{name} does not reference locked source commit {sha}')
-          print(f'Locked upstream: {lock["source_repository"]}@{sha}')
-          PY
-
-      - name: Refresh validated USGS snapshot
-        shell: bash
+      - uses: actions/checkout@v6
+      - name: Verify entrypoint contract
         run: |
           set -euo pipefail
-          mkdir -p data/snapshots
-          tmp="$(mktemp)"
-          curl --fail --silent --show-error --location --retry 3 --retry-delay 2 \
-            'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson' \
-            --output "$tmp"
-          jq -e '.type == "FeatureCollection" and (.features | type == "array")' "$tmp" >/dev/null
-          mv "$tmp" data/snapshots/usgs-earthquakes-day.geojson
-          sha="$(sha256sum data/snapshots/usgs-earthquakes-day.geojson | awk '{print $1}')"
-          fetched="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          jq -n --arg supplyId 'usgs-earthquakes-day' --arg fetchedAt "$fetched" --arg sha256 "$sha" \
-            '{supplyId:$supplyId,fetchedAt:$fetchedAt,sha256:$sha256}' > data/snapshots/usgs-earthquakes-day.meta.json
-
-      - name: Static contract checks
-        shell: bash
+          sha="$(jq -r '.source_commit' SOURCE.json)"
+          test "$(jq -r '.role' SOURCE.json)" = entrypoint
+          test "$(jq -r '.instrument' SOURCE.json)" = pulse
+          grep -q "$sha" index.html PRODUCTION.md
+          grep -F 'https://geogeeklab.github.io/core/observatory-entry.js' index.html
+          ! grep -F 'cdn.jsdelivr.net/gh/GeoGeekLab/GeoGeekLab.github.io' index.html
+          ! grep -F 'earthquake.usgs.gov/earthquakes/feed' index.html
+      - name: Install browser QA
         run: |
-          set -euo pipefail
-          test -s index.html
-          test -s data/snapshots/usgs-earthquakes-day.geojson
-          test -s data/snapshots/usgs-earthquakes-day.meta.json
-          grep -q 'GeoPulseObservationLab' index.html
-
-      - name: Capture instrument figure and audit links
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p assets
-          npx --yes playwright@1.55.0 install --with-deps chromium
-          python3 -m http.server 8000 >/tmp/geogeek-http.log 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for _ in $(seq 1 20); do if curl --fail --silent http://127.0.0.1:8000/ >/dev/null; then break; fi; sleep 0.5; done
-          npx --yes playwright@1.55.0 screenshot --viewport-size "1600,800" --wait-for-timeout 15000 http://127.0.0.1:8000/ assets/instrument.png
-          test -s assets/instrument.png
-          npm install --no-save --no-package-lock playwright@1.55.0 >/tmp/playwright-npm.log 2>&1
-          cat > instrument-link-audit.cjs <<'JS'
-          const { chromium, request }=require('playwright');
-          (async()=>{const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:800}});await page.goto('http://127.0.0.1:8000/',{waitUntil:'domcontentloaded',timeout:60000});await page.waitForTimeout(12000);const links=await page.locator('a[href]').evaluateAll(ns=>ns.map(a=>({text:(a.textContent||'').trim().replace(/\s+/g,' ').slice(0,120),href:a.href})).filter(x=>/^https?:/i.test(x.href)));const unique=[...new Map(links.map(x=>[x.href,x])).values()];console.log('INSTRUMENT_LINK_COUNT='+unique.length);const api=await request.newContext({ignoreHTTPSErrors:true});await Promise.all(unique.map(async l=>{try{const r=await api.get(l.href,{timeout:8000,failOnStatusCode:false,maxRedirects:8});console.log(`INSTRUMENT_LINK status=${r.status()} href=${l.href} text=${JSON.stringify(l.text)}`)}catch(e){console.log(`INSTRUMENT_LINK status=ERROR href=${l.href} text=${JSON.stringify(l.text)} error=${JSON.stringify(String(e.message||e))}`)}}));await api.dispose();await browser.close()})().catch(e=>{console.error(e);process.exit(1)});
+          npm install --prefix /tmp/geogeek-pw --no-package-lock --no-save playwright@1.55.0 >/dev/null 2>&1
+          /tmp/geogeek-pw/node_modules/.bin/playwright install --with-deps chromium
+          cat >/tmp/audit.cjs <<'JS'
+          const fs=require('fs'); const {chromium,request}=require('/tmp/geogeek-pw/node_modules/playwright');
+          const [url,selector,shot,inject]=process.argv.slice(2);
+          (async()=>{const b=await chromium.launch({headless:true});const p=await b.newPage({viewport:{width:1600,height:800}});if(inject==='1')await p.route(url,r=>r.fulfill({status:200,contentType:'text/html; charset=utf-8',body:fs.readFileSync('index.html','utf8')}));const res=await p.goto(url,{waitUntil:'domcontentloaded',timeout:60000});if(!res||res.status()>=400)throw Error(`navigation ${res?.status()}`);await p.waitForFunction(()=>window.GeoProviderStability?.installed&&window.GeoDataSupply?.installed,null,{timeout:45000});await p.locator(selector).first().waitFor({state:'visible',timeout:45000});if(await p.locator('.instrument-error').count())throw Error((await p.locator('.instrument-error').allTextContents()).join(' | '));const supply=await p.evaluate(()=>window.GeoDataSupply?.describe?.('usgs-earthquakes-day'));console.log('PULSE_SUPPLY='+JSON.stringify({transport:supply?.transport,stale:supply?.stale,ageLabel:supply?.ageLabel,recordCount:supply?.metadata?.recordCount}));if(!supply||supply.transport!=='same-origin-snapshot')throw Error(`unexpected USGS transport: ${JSON.stringify(supply)}`);if(shot)await p.screenshot({path:shot});const api=await request.newContext({ignoreHTTPSErrors:true});for(const href of [...new Set(await p.locator('a[href]').evaluateAll(ns=>ns.map(a=>a.href).filter(h=>/^https?:/i.test(h))))]){if(new URL(href).hostname!=='geogeeklab.github.io')continue;const r=await api.get(href,{timeout:10000,failOnStatusCode:false,maxRedirects:8});if(r.status()>=400)throw Error(`first-party link ${r.status()}: ${href}`)}await api.dispose();await b.close()})().catch(e=>{console.error(e);process.exit(1)});
           JS
-          node instrument-link-audit.cjs
-          rm -f instrument-link-audit.cjs
-          rm -rf node_modules
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Upload static site
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: .
+      - name: Capture and verify pending entry
+        run: |
+          mkdir -p assets
+          node /tmp/audit.cjs 'https://geogeeklab.github.io/earth-pulse/?qa=pending' '.pulse-observation-lab, .pulse-layout' 'assets/instrument.png' 1
+          test -s assets/instrument.png
+          curl --fail --silent --show-error --location 'https://geogeeklab.github.io/data/snapshots/usgs-earthquakes-day.meta.json' -o /tmp/usgs-meta.json
+          jq -e '(.fetchedAt|type=="string") and (.sha256|type=="string")' /tmp/usgs-meta.json >/dev/null
+      - uses: actions/configure-pages@v5
+        with: {enablement: true}
+      - uses: actions/upload-pages-artifact@v4
+        with: {path: .}
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Verify public Pages endpoint
-        shell: bash
+      - name: Verify deployed public instrument
         run: |
-          set -euo pipefail
           url='${{ steps.deployment.outputs.page_url }}'
-          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "$url" -o /tmp/public-index.html
-          grep -qi '<!doctype html>' /tmp/public-index.html
-          source_sha="$(jq -r '.source_commit' SOURCE.json)"
-          grep -q "$source_sha" /tmp/public-index.html
-          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${url%/}/assets/instrument.png" -o /tmp/public-instrument.png
-          test -s /tmp/public-instrument.png
-          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${url%/}/data/snapshots/usgs-earthquakes-day.meta.json" -o /tmp/public-snapshot-meta.json
-          jq -e '.supplyId == "usgs-earthquakes-day" and (.fetchedAt | type == "string") and (.sha256 | type == "string")' /tmp/public-snapshot-meta.json >/dev/null
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "$url" -o /tmp/public.html
+          grep -q "$(jq -r '.source_commit' SOURCE.json)" /tmp/public.html
+          node /tmp/audit.cjs "$url" '.pulse-observation-lab, .pulse-layout' '' 0
