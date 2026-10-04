@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
 
 permissions:
   contents: read
@@ -23,6 +25,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Refresh validated USGS snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/snapshots
+          tmp="$(mktemp)"
+          curl --fail --silent --show-error --location --retry 3 --retry-delay 2 \
+            'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson' \
+            --output "$tmp"
+          jq -e '.type == "FeatureCollection" and (.features | type == "array")' "$tmp" >/dev/null
+          mv "$tmp" data/snapshots/usgs-earthquakes-day.geojson
+          sha="$(sha256sum data/snapshots/usgs-earthquakes-day.geojson | awk '{print $1}')"
+          fetched="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          jq -n --arg supplyId 'usgs-earthquakes-day' --arg fetchedAt "$fetched" --arg sha256 "$sha" \
+            '{supplyId:$supplyId,fetchedAt:$fetchedAt,sha256:$sha256}' \
+            > data/snapshots/usgs-earthquakes-day.meta.json
+
+      - name: Static contract checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s index.html
+          test -s data/snapshots/usgs-earthquakes-day.geojson
+          test -s data/snapshots/usgs-earthquakes-day.meta.json
+          grep -q 'GeoPulseObservationLab' index.html
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
