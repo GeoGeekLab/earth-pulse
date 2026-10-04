@@ -32,15 +32,11 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          lock = json.loads(Path('SOURCE.json').read_text())
-          sha = lock.get('source_commit', '')
-          if lock.get('role') != 'entrypoint':
-              raise SystemExit('SOURCE.json must declare role=entrypoint')
-          if len(sha) != 40 or any(c not in '0123456789abcdef' for c in sha.lower()):
-              raise SystemExit('SOURCE.json contains an invalid source_commit')
-          for name in ('index.html', 'PRODUCTION.md'):
-              if sha not in Path(name).read_text():
-                  raise SystemExit(f'{name} does not reference locked source commit {sha}')
+          lock=json.loads(Path('SOURCE.json').read_text()); sha=lock.get('source_commit','')
+          if lock.get('role')!='entrypoint': raise SystemExit('SOURCE.json must declare role=entrypoint')
+          if len(sha)!=40 or any(c not in '0123456789abcdef' for c in sha.lower()): raise SystemExit('SOURCE.json contains an invalid source_commit')
+          for name in ('index.html','PRODUCTION.md'):
+              if sha not in Path(name).read_text(): raise SystemExit(f'{name} does not reference locked source commit {sha}')
           print(f'Locked upstream: {lock["source_repository"]}@{sha}')
           PY
 
@@ -58,8 +54,7 @@ jobs:
           sha="$(sha256sum data/snapshots/usgs-earthquakes-day.geojson | awk '{print $1}')"
           fetched="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           jq -n --arg supplyId 'usgs-earthquakes-day' --arg fetchedAt "$fetched" --arg sha256 "$sha" \
-            '{supplyId:$supplyId,fetchedAt:$fetchedAt,sha256:$sha256}' \
-            > data/snapshots/usgs-earthquakes-day.meta.json
+            '{supplyId:$supplyId,fetchedAt:$fetchedAt,sha256:$sha256}' > data/snapshots/usgs-earthquakes-day.meta.json
 
       - name: Static contract checks
         shell: bash
@@ -70,7 +65,7 @@ jobs:
           test -s data/snapshots/usgs-earthquakes-day.meta.json
           grep -q 'GeoPulseObservationLab' index.html
 
-      - name: Capture instrument figure
+      - name: Capture instrument figure and audit links
         shell: bash
         run: |
           set -euo pipefail
@@ -79,17 +74,17 @@ jobs:
           python3 -m http.server 8000 >/tmp/geogeek-http.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for _ in $(seq 1 20); do
-            if curl --fail --silent http://127.0.0.1:8000/ >/dev/null; then
-              break
-            fi
-            sleep 0.5
-          done
-          npx --yes playwright@1.55.0 screenshot \
-            --viewport-size "1600,800" \
-            --wait-for-timeout 15000 \
-            http://127.0.0.1:8000/ assets/instrument.png
+          for _ in $(seq 1 20); do if curl --fail --silent http://127.0.0.1:8000/ >/dev/null; then break; fi; sleep 0.5; done
+          npx --yes playwright@1.55.0 screenshot --viewport-size "1600,800" --wait-for-timeout 15000 http://127.0.0.1:8000/ assets/instrument.png
           test -s assets/instrument.png
+          npm install --no-save --no-package-lock playwright@1.55.0 >/tmp/playwright-npm.log 2>&1
+          cat > instrument-link-audit.cjs <<'JS'
+          const { chromium, request }=require('playwright');
+          (async()=>{const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:800}});await page.goto('http://127.0.0.1:8000/',{waitUntil:'domcontentloaded',timeout:60000});await page.waitForTimeout(12000);const links=await page.locator('a[href]').evaluateAll(ns=>ns.map(a=>({text:(a.textContent||'').trim().replace(/\s+/g,' ').slice(0,120),href:a.href})).filter(x=>/^https?:/i.test(x.href)));const unique=[...new Map(links.map(x=>[x.href,x])).values()];console.log('INSTRUMENT_LINK_COUNT='+unique.length);const api=await request.newContext({ignoreHTTPSErrors:true});await Promise.all(unique.map(async l=>{try{const r=await api.get(l.href,{timeout:8000,failOnStatusCode:false,maxRedirects:8});console.log(`INSTRUMENT_LINK status=${r.status()} href=${l.href} text=${JSON.stringify(l.text)}`)}catch(e){console.log(`INSTRUMENT_LINK status=ERROR href=${l.href} text=${JSON.stringify(l.text)} error=${JSON.stringify(String(e.message||e))}`)}}));await api.dispose();await browser.close()})().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node instrument-link-audit.cjs
+          rm -f instrument-link-audit.cjs
+          rm -rf node_modules
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
