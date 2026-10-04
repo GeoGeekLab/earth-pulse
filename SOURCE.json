@@ -2,7 +2,8 @@
   "role": "entrypoint",
   "instrument": "pulse",
   "source_repository": "GeoGeekLab/GeoGeekLab.github.io",
-  "source_commit": "064ce2c718499fc26a744a9e58cad09d97a323fb",
+  "source_commit": "de142ef7a2002498b01fae22ff8734b42475de9c",
+  "runtime_release": "20261004b",
   "runtime_channel": "https://geogeeklab.github.io/",
   "runtime_bootstrap": "core/observatory-entry.js",
   "upgrade_policy": "explicit-tested-revision"
