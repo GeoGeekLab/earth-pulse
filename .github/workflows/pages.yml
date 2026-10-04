@@ -70,6 +70,27 @@ jobs:
           test -s data/snapshots/usgs-earthquakes-day.meta.json
           grep -q 'GeoPulseObservationLab' index.html
 
+      - name: Capture instrument figure
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          npx --yes playwright@1.55.0 install --with-deps chromium
+          python3 -m http.server 8000 >/tmp/geogeek-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8000/ >/dev/null; then
+              break
+            fi
+            sleep 0.5
+          done
+          npx --yes playwright@1.55.0 screenshot \
+            --viewport-size "1440,1000" \
+            --wait-for-timeout 15000 \
+            http://127.0.0.1:8000/ assets/instrument.png
+          test -s assets/instrument.png
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
