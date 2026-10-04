@@ -1,14 +1,9 @@
 {
-  "schema": 1,
   "role": "entrypoint",
+  "instrument": "pulse",
   "source_repository": "GeoGeekLab/GeoGeekLab.github.io",
-  "source_commit": "d949bd75870bfd49f6d12b297e6cca02de107f9c",
-  "runtime": [
-    "site/core/data-supply.js",
-    "site/pulse-observation-lab-v2.js",
-    "site/pulse-observation-lab-v3.js",
-    "site/pulse-observation-lab-v4.js"
-  ],
-  "data_refresh": "repository workflow / USGS rolling 24h snapshot",
-  "upgrade_policy": "explicit"
+  "source_commit": "064ce2c718499fc26a744a9e58cad09d97a323fb",
+  "runtime_channel": "https://geogeeklab.github.io/",
+  "runtime_bootstrap": "core/observatory-entry.js",
+  "upgrade_policy": "explicit-tested-revision"
 }
