@@ -5,7 +5,8 @@
 ## Runtime
 
 - Source repository: `GeoGeekLab/GeoGeekLab.github.io`
-- Tested source revision: `064ce2c718499fc26a744a9e58cad09d97a323fb`
+- Tested source revision: `de142ef7a2002498b01fae22ff8734b42475de9c`
+- Runtime release: `20261004b`
 - Production channel: `https://geogeeklab.github.io/`
 - Shared bootstrap: `/core/observatory-entry.js`
 - Pulse runtime: `/pulse-observation-lab-v2.js` → `v3` → `v4`
