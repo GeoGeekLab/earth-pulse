@@ -2,7 +2,7 @@
 
 **Seismicity · spatiotemporal point process · temporal window · lattice aggregation**
 
-*EARTH PULSE* is a spatiotemporal GIS instrument for exploring recent global seismicity as a georeferenced point process. It combines a rolling earthquake catalogue with temporal filtering, magnitude filtering, event-symbol mapping, and regular-lattice aggregation so that the same seismic sequence can be examined at both event and regional scales.
+*EARTH PULSE* is a spatiotemporal GIS instrument for exploring recent global seismicity as a georeferenced point process. It combines a rolling earthquake catalogue with temporal filtering, magnitude filtering, event-symbol mapping, and regular-lattice aggregation.
 
 <p align="center">
   <a href="https://geogeeklab.github.io/earth-pulse/">
@@ -12,30 +12,28 @@
 
 ## Instrument capabilities
 
-*EARTH PULSE* provides a compact workflow for moving between event-level seismic observations and spatially aggregated patterns.
-
-- **Filter the seismic catalogue by time.** Restrict the rolling 24-hour snapshot to a shorter observation window and examine how the visible point pattern changes with temporal support.
-- **Apply a magnitude threshold.** Remove lower-magnitude events from the active set to compare the spatial distribution of progressively stronger seismicity.
-- **Map individual earthquakes.** Display event symbols at epicentral locations and retain event-level magnitude, depth, origin time, and provider metadata for inspection.
-- **Aggregate events to a regular grid.** Convert the active point set into cell counts to examine regional event frequency and the effect of areal support on apparent concentration.
-- **Move between event and regional scales.** Compare symbol and lattice representations of the same filtered catalogue without changing the underlying observation set.
-- **Inspect snapshot provenance.** Relate the displayed events to the deployed USGS snapshot, UTC retrieval time, and content digest used for that publication cycle.
+- **Filter by time.** Restrict the rolling 24-hour snapshot to a shorter observation window.
+- **Apply a magnitude threshold.** Filter the active event set by magnitude.
+- **Map individual earthquakes.** Display epicentral locations with magnitude, depth, origin time, and provider metadata.
+- **Aggregate events to a regular grid.** Convert the active point set into cell counts for regional frequency analysis.
+- **Switch spatial representations.** Compare event symbols and lattice counts for the same filtered catalogue.
+- **Inspect snapshot provenance.** Read the deployed USGS snapshot, UTC retrieval time, and content digest.
 
 ## Event model
 
-The primary analytical object is a georeferenced seismic-event catalogue. Each feature carries geographic position, origin time, magnitude, depth, and provider metadata from the [USGS Earthquake Hazards Program](https://earthquake.usgs.gov/). The deployed snapshot is derived from the [USGS real-time GeoJSON summary feeds](https://earthquake.usgs.gov/earthquakes/feed/) and uses the rolling past-24-hour event set as its temporal envelope.
+The primary analytical object is a georeferenced seismic-event catalogue. Each feature includes geographic position, origin time, magnitude, depth, and provider metadata from the [USGS Earthquake Hazards Program](https://earthquake.usgs.gov/).
 
-Within *EARTH PULSE*, the active observation window can be shortened inside that 24-hour envelope. This changes the support of the point process and therefore the visible clustering, regional event density, and magnitude distribution. Time is treated as part of the spatial query rather than as a passive timestamp.
+The deployed dataset is derived from the [USGS real-time GeoJSON summary feeds](https://earthquake.usgs.gov/earthquakes/feed/) and uses the rolling past-24-hour event set. The user-selected time window defines the active subset used by the map and grid views.
 
 ## Spatial representations
 
 | Representation | Spatial unit | Analytical role |
 | --- | --- | --- |
-| Event symbols | Individual earthquake epicentres | Preserve event-level position, magnitude, and time |
-| Regular count grid | Fixed spatial cells | Aggregate event frequency over areal support |
-| Reference land geometry | [Natural Earth 1:110m](https://www.naturalearthdata.com/downloads/) | Provide generalized global cartographic context |
+| Event symbols | Individual earthquake epicentres | Event position, magnitude, depth, and origin time |
+| Regular count grid | Fixed spatial cells | Event frequency aggregated over areal support |
+| Reference land geometry | [Natural Earth 1:110m](https://www.naturalearthdata.com/downloads/) | Global cartographic reference |
 
-The event view supports point-pattern inspection. The count grid converts the same feature set into an areal frequency surface by summing events within regular cells. Grid resolution therefore changes the analytical support and the apparent spatial concentration of seismicity, linking the visualization directly to scale effects and the modifiable areal unit problem (MAUP).
+Grid resolution controls the areal support used for event counts. Temporal window and magnitude threshold control the active event set.
 
 ## Data provenance and processing
 
@@ -49,16 +47,24 @@ The event view supports point-pattern inspection. The count grid converts the sa
 | Areal aggregation | Regular-grid event count |
 | Snapshot provenance | UTC fetch time plus SHA-256 digest recorded at deployment |
 
-The Pages workflow refreshes and validates the USGS `FeatureCollection` before publication. This makes the deployed map reproducible at the snapshot level: the visualization, fetch time, and content digest refer to the same event collection.
+The Pages workflow refreshes the USGS `FeatureCollection`, validates its structure, records the fetch time, computes a SHA-256 digest, and publishes the snapshot with the instrument.
 
-## Seismological interpretation
+## Analysis variables
 
-*EARTH PULSE* emphasizes the spatial organization of recent seismicity rather than a single summary statistic. Event-level inspection preserves individual hypocentral metadata, while grid aggregation exposes regional frequency patterns. Comparing these representations makes scale, temporal support, and aggregation choice explicit components of the geospatial interpretation.
+The main analytical controls are:
+
+- temporal window;
+- magnitude threshold;
+- event-symbol or count-grid representation;
+- grid resolution;
+- event-level inspection.
 
 ## Instrument access
 
 **Live instrument:** https://geogeeklab.github.io/earth-pulse/
 
-*EARTH PULSE* is a public entrypoint to the production visualization runtime maintained in [`GeoGeekLab/GeoGeekLab.github.io`](https://github.com/GeoGeekLab/GeoGeekLab.github.io). [`SOURCE.json`](./SOURCE.json) records the pinned upstream revision, and [`PRODUCTION.md`](./PRODUCTION.md) documents the runtime, snapshot, and aggregation contract.
+Source runtime: [`GeoGeekLab/GeoGeekLab.github.io`](https://github.com/GeoGeekLab/GeoGeekLab.github.io)  
+Pinned revision: [`SOURCE.json`](./SOURCE.json)  
+Production contract: [`PRODUCTION.md`](./PRODUCTION.md)
 
 *GeoGeek note — time window and spatial support define the pattern you see.*
