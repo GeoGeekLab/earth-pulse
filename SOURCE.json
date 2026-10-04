@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "role": "entrypoint",
+  "source_repository": "GeoGeekLab/GeoGeekLab.github.io",
+  "source_commit": "d949bd75870bfd49f6d12b297e6cca02de107f9c",
+  "runtime": [
+    "site/core/data-supply.js",
+    "site/pulse-observation-lab-v2.js",
+    "site/pulse-observation-lab-v3.js",
+    "site/pulse-observation-lab-v4.js"
+  ],
+  "data_refresh": "repository workflow / USGS rolling 24h snapshot",
+  "upgrade_policy": "explicit"
+}
