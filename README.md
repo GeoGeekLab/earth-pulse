@@ -1,53 +1,34 @@
 # Earth Pulse
 
-**Seismic event / time window / aggregation**
+**Seismicity · point pattern · temporal window · spatial aggregation**
 
-Earth Pulse is a near-real-time observation instrument for reading global seismic activity as a rolling event field. It presents recent USGS earthquake solutions in time and space, then lets the same catalogue be examined as individual events or as aggregated counts.
+Earth Pulse is a spatiotemporal observation instrument for exploring recent global seismicity as an event field. It combines a rolling earthquake catalogue with temporal filtering, magnitude filtering, event-symbol mapping, and grid-based aggregation so that the same seismic sequence can be examined at both event and regional scales.
 
-> **GeoGeek principle:** Density is a summary, not an earthquake.
+![Earth Pulse instrument](https://geogeeklab.github.io/earth-pulse/assets/instrument.png)
 
-## Mission
+## Analytical perspective
 
-The project is built around one operational question: what can a short, current seismic catalogue show clearly, and what must it not be allowed to imply?
+The primary data model is a georeferenced point-event catalogue. Each earthquake carries a location, origin time, magnitude, and associated event metadata. The interface allows the active temporal support to be changed from a short recent interval to the full rolling 24-hour window, making the spatial pattern explicitly dependent on observation time.
 
-Earth Pulse keeps the answer bounded. It is useful for seeing where events have been reported, how recent activity is distributed, and how aggregation changes visual emphasis. It is not a hazard forecast, a risk model, or a historical seismic archive.
+Two complementary spatial representations are available. Event symbols preserve individual epicentral locations and magnitudes. The count grid transforms the point pattern into cell-based frequencies, providing a regional summary whose interpretation depends on grid resolution and temporal window.
 
-## Current observation cycle
+## Data provenance and processing
 
-The production deployment uses the USGS Earthquake Hazards Program rolling past-24-hour GeoJSON feed. During deployment, the response is validated as a GeoJSON `FeatureCollection`, stored as a same-origin snapshot, and accompanied by UTC fetch time and SHA-256 metadata.
+| Component | Specification |
+| --- | --- |
+| Seismic catalogue | USGS Earthquake Hazards Program, rolling past-24-hour GeoJSON feed |
+| Temporal support | User-selected interval within the current 24-hour snapshot |
+| Point representation | Individual earthquake events with magnitude filtering |
+| Areal representation | Regular-grid event counts |
+| Reference geography | Version-pinned Natural Earth land geometry |
+| Snapshot integrity | UTC fetch time and SHA-256 recorded at deployment |
 
-The refresh workflow runs hourly and on normal production deployments. If upstream validation fails, the last successful Pages deployment is retained rather than being replaced by an invalid snapshot.
+The deployed snapshot is refreshed hourly and validated as a GeoJSON `FeatureCollection` before publication. The resulting map supports exploratory analysis of recent seismic clustering, regional event frequency, and changes in spatial concentration through time.
 
-## Event view and count grid
+## Instrument access
 
-The event representation preserves individual catalogue records and their reported properties. The count grid deliberately removes that individuality and answers a different question: how many catalogue events fall inside each spatial cell for the selected view and time conditions?
+**Live instrument:** https://geogeeklab.github.io/earth-pulse/
 
-That grid must not be interpreted as:
+This repository provides the public entrypoint and the validated deployment snapshot. The production visualization runtime remains in `GeoGeekLab/GeoGeekLab.github.io`. `SOURCE.json` records the pinned source revision, while `PRODUCTION.md` documents the runtime, snapshot, and aggregation contract.
 
-- earthquake probability;
-- shaking intensity;
-- exposure or risk;
-- a physically continuous seismic field.
-
-USGS event solutions can also be revised after first publication. “Current” therefore describes the deployed catalogue snapshot, not an immutable final solution.
-
-## Operations
-
-**Public instrument**  
-https://geogeeklab.github.io/earth-pulse/
-
-The interface runtime is sourced from `GeoGeekLab/GeoGeekLab.github.io` and pinned to commit `d949bd75870bfd49f6d12b297e6cca02de107f9c`. The USGS data snapshot is refreshed independently by this repository’s deployment workflow.
-
-See [`PRODUCTION.md`](./PRODUCTION.md) for the exact runtime chain, refresh contract, and interpretation limits.
-
-A local checkout can serve the entry shell with:
-
-```bash
-python -m http.server 8000
-```
-
-The deployed Pages artifact is the production path for the validated rolling snapshot.
-
----
-
-Part of the **GeoGeek Observatory** — current data, explicit limits, no hazard theater.
+*GeoGeek note — time window and spatial support define the pattern you see.*
