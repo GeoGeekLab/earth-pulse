@@ -97,3 +97,16 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify public Pages endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='${{ steps.deployment.outputs.page_url }}'
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "$url" -o /tmp/public-index.html
+          grep -qi '<!doctype html>' /tmp/public-index.html
+          source_sha="$(jq -r '.source_commit' SOURCE.json)"
+          grep -q "$source_sha" /tmp/public-index.html
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${url%/}/assets/instrument.png" -o /tmp/public-instrument.png
+          test -s /tmp/public-instrument.png
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${url%/}/data/snapshots/usgs-earthquakes-day.meta.json" -o /tmp/public-snapshot-meta.json
+          jq -e '.supplyId == "usgs-earthquakes-day" and (.fetchedAt | type == "string") and (.sha256 | type == "string")' /tmp/public-snapshot-meta.json >/dev/null
