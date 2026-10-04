@@ -26,6 +26,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Verify source lock
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lock = json.loads(Path('SOURCE.json').read_text())
+          sha = lock.get('source_commit', '')
+          if lock.get('role') != 'entrypoint':
+              raise SystemExit('SOURCE.json must declare role=entrypoint')
+          if len(sha) != 40 or any(c not in '0123456789abcdef' for c in sha.lower()):
+              raise SystemExit('SOURCE.json contains an invalid source_commit')
+          for name in ('index.html', 'PRODUCTION.md'):
+              if sha not in Path(name).read_text():
+                  raise SystemExit(f'{name} does not reference locked source commit {sha}')
+          print(f'Locked upstream: {lock["source_repository"]}@{sha}')
+          PY
+
       - name: Refresh validated USGS snapshot
         shell: bash
         run: |
