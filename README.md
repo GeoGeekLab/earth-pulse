@@ -4,7 +4,11 @@
 
 *EARTH PULSE* is a spatiotemporal GIS instrument for exploring recent global seismicity as a georeferenced point process. It combines a rolling earthquake catalogue with temporal filtering, magnitude filtering, event-symbol mapping, and regular-lattice aggregation so that the same seismic sequence can be examined at both event and regional scales.
 
-[![Earth Pulse instrument](https://geogeeklab.github.io/earth-pulse/assets/instrument.png)](https://geogeeklab.github.io/earth-pulse/)
+<p align="center">
+  <a href="https://geogeeklab.github.io/earth-pulse/">
+    <img src="https://geogeeklab.github.io/earth-pulse/assets/instrument.png" alt="Earth Pulse instrument" width="720">
+  </a>
+</p>
 
 ## Event model
 
