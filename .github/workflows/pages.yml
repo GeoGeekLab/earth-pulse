@@ -86,7 +86,7 @@ jobs:
             sleep 0.5
           done
           npx --yes playwright@1.55.0 screenshot \
-            --viewport-size "1440,1000" \
+            --viewport-size "1600,800" \
             --wait-for-timeout 15000 \
             http://127.0.0.1:8000/ assets/instrument.png
           test -s assets/instrument.png
