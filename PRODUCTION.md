@@ -1,24 +1,22 @@
 # Production contract
 
-## Runtime baseline
+`earth-pulse` is the public entrypoint for the production *EARTH PULSE* instrument.
 
-This repository mounts the Pulse production chain from `GeoGeekLab/GeoGeekLab.github.io` pinned to commit `d949bd75870bfd49f6d12b297e6cca02de107f9c`.
+## Runtime
 
-The standalone shell loads the unified data-supply runtime, then Pulse v2, v3, and v4 in order. Production CSS is pinned to the same source commit.
+- Source repository: `GeoGeekLab/GeoGeekLab.github.io`
+- Tested source revision: `064ce2c718499fc26a744a9e58cad09d97a323fb`
+- Production channel: `https://geogeeklab.github.io/`
+- Shared bootstrap: `/core/observatory-entry.js`
+- Pulse runtime: `/pulse-observation-lab-v2.js` → `v3` → `v4`
+- Provider control: `/core/provider-stability.js` + `/core/data-supply.js`
 
-## Data contract
+## Seismic data supply
 
-- Provider: USGS Earthquake Hazards Program.
-- Dataset: all earthquakes / rolling past 24 hours GeoJSON feed.
-- Delivery: same-origin Pages snapshot generated during deployment.
-- Refresh: the Pages workflow runs hourly at minute 17 and on every push or manual dispatch.
-- Metadata: every deployed snapshot includes UTC `fetchedAt` and SHA-256.
-- Land reference: version-pinned Natural Earth reference from the production source baseline.
+The main GeoGeek data-supply workflow refreshes the USGS rolling past-24-hour GeoJSON snapshot, validates the `FeatureCollection`, records retrieval time and SHA-256 metadata, and deploys the snapshot on the main GitHub Pages origin. The entrypoint reads the same production snapshot through the unified `usgs-earthquakes-day` adapter.
 
-## Interpretation limits
+This repository does not maintain a second USGS snapshot or an independent refresh schedule.
 
-The snapshot is a rolling event catalogue, not a historical archive. Event solutions can be revised. The count grid is an aggregation of event counts, not a hazard surface or risk model.
+## Release checks
 
-## Deployment contract
-
-The workflow validates the upstream response as a GeoJSON FeatureCollection before deployment. A failed refresh prevents a new Pages artifact from replacing the last successful deployment.
+The repository validates the source revision, shared bootstrap reference, Chromium instrument mount, `same-origin-snapshot` transport for `usgs-earthquakes-day`, absence of `.instrument-error`, instrument screenshot, Pages deployment, and the deployed public endpoint.
