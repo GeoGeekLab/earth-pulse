@@ -10,6 +10,17 @@
   </a>
 </p>
 
+## Instrument capabilities
+
+*EARTH PULSE* provides a compact workflow for moving between event-level seismic observations and spatially aggregated patterns.
+
+- **Filter the seismic catalogue by time.** Restrict the rolling 24-hour snapshot to a shorter observation window and examine how the visible point pattern changes with temporal support.
+- **Apply a magnitude threshold.** Remove lower-magnitude events from the active set to compare the spatial distribution of progressively stronger seismicity.
+- **Map individual earthquakes.** Display event symbols at epicentral locations and retain event-level magnitude, depth, origin time, and provider metadata for inspection.
+- **Aggregate events to a regular grid.** Convert the active point set into cell counts to examine regional event frequency and the effect of areal support on apparent concentration.
+- **Move between event and regional scales.** Compare symbol and lattice representations of the same filtered catalogue without changing the underlying observation set.
+- **Inspect snapshot provenance.** Relate the displayed events to the deployed USGS snapshot, UTC retrieval time, and content digest used for that publication cycle.
+
 ## Event model
 
 The primary analytical object is a georeferenced seismic-event catalogue. Each feature carries geographic position, origin time, magnitude, depth, and provider metadata from the [USGS Earthquake Hazards Program](https://earthquake.usgs.gov/). The deployed snapshot is derived from the [USGS real-time GeoJSON summary feeds](https://earthquake.usgs.gov/earthquakes/feed/) and uses the rolling past-24-hour event set as its temporal envelope.
