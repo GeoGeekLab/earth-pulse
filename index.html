@@ -4,12 +4,12 @@
 <main><div id="instrumentStage" class="stage" aria-live="polite"><div class="instrument-loading"><strong>Loading seismic production runtime…</strong></div></div></main>
 <footer class="foot"><span>GeoGeek · Geo to see. Geek to build.</span><span>USGS / EVENT TIME / MAGNITUDE / COUNT GRID</span></footer>
 <script type="module">
-const SOURCE_REVISION='064ce2c718499fc26a744a9e58cad09d97a323fb';
+const SOURCE_REVISION='de142ef7a2002498b01fae22ff8734b42475de9c';
 const ENTRY=`https://geogeeklab.github.io/core/observatory-entry.js?v=${SOURCE_REVISION}`;
 const stage=document.getElementById('instrumentStage'); const controller=new AbortController(); let cleanup=null;
 try{const runtime=await import(ENTRY);cleanup=await runtime.mountObservatoryInstrument('pulse',{stage,signal:controller.signal});stage.dataset.runtimeReady='true';}
 catch(error){stage.innerHTML=`<div class="instrument-error"><strong>Pulse runtime unavailable.</strong><span>${String(error?.message||error)}</span></div>`;}
 addEventListener('pagehide',()=>{controller.abort();try{cleanup?.()}catch{}},{once:true});
 </script>
-<!-- PRODUCTION 064ce2c718499fc26a744a9e58cad09d97a323fb -->
+<!-- PRODUCTION de142ef7a2002498b01fae22ff8734b42475de9c -->
 </body></html>
