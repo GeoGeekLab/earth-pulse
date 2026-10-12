@@ -2,9 +2,11 @@
   "role": "entrypoint",
   "instrument": "pulse",
   "source_repository": "GeoGeekLab/GeoGeekLab.github.io",
-  "source_commit": "de142ef7a2002498b01fae22ff8734b42475de9c",
+  "source_commit": "12743de0f7d0e900031ec2cbbe17551255e271a5",
   "runtime_release": "20261004b",
   "runtime_channel": "https://geogeeklab.github.io/",
   "runtime_bootstrap": "core/observatory-entry.js",
-  "upgrade_policy": "explicit-tested-revision"
+  "upgrade_policy": "explicit-tested-revision",
+  "lab_reference_release": "20261011v107watercache1",
+  "lab_reference_url": "https://geogeeklab.github.io/lab.html?release=20261011v107watercache1"
 }
