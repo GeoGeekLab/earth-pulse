@@ -5,7 +5,7 @@
 ## Runtime
 
 - Source repository: `GeoGeekLab/GeoGeekLab.github.io`
-- Tested source revision: `12743de0f7d0e900031ec2cbbe17551255e271a5`
+- Inspected source revision (production QA pending): `12743de0f7d0e900031ec2cbbe17551255e271a5`
 - Bootstrap asset release: `20261004b` (shared loader constant; distinct from the Lab HTML release)
 - Production channel: `https://geogeeklab.github.io/`
 - Shared bootstrap: `/core/observatory-entry.js`
