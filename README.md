@@ -101,7 +101,7 @@ The standalone entrypoint now exposes OBSERVE / ANALYZE tabs and loads these opt
 **Live instrument:** https://geogeeklab.github.io/earth-pulse/
 
 Source runtime: [`GeoGeekLab/GeoGeekLab.github.io`](https://github.com/GeoGeekLab/GeoGeekLab.github.io)  
-Pinned revision: [`SOURCE.json`](./SOURCE.json)  
+Source reference manifest: [`SOURCE.json`](./SOURCE.json)  
 Production contract: [`PRODUCTION.md`](./PRODUCTION.md)
 
 *GeoGeek note — time window and spatial support define the pattern you see.*
