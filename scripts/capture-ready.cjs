@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
-const { chromium } = require('/tmp/geogeek-pw/node_modules/playwright');
+const { chromium } = require(process.env.PLAYWRIGHT_PATH || '/tmp/geogeek-pw/node_modules/playwright');
 const [url, output, mode = 'overview', inject = '0'] = process.argv.slice(2);
 const slug = new URL(url).pathname.split('/').filter(Boolean)[0];
 assert(['orbital-commons', 'earth-pulse', 'world-as-relation'].includes(slug), 'Unknown instrument');
