@@ -40,8 +40,11 @@ jobs:
       - name: Capture and verify pending entry
         run: |
           mkdir -p assets
-          node /tmp/audit.cjs 'https://geogeeklab.github.io/earth-pulse/?qa=pending' '.pulse-observation-lab, .pulse-layout' 'assets/instrument.png' 1
+          node /tmp/audit.cjs 'https://geogeeklab.github.io/earth-pulse/?qa=pending' '.pulse-observation-lab, .pulse-layout' '' 1
+          node scripts/capture-ready.cjs 'https://geogeeklab.github.io/earth-pulse/?qa=pending' assets/instrument.png overview 1
+          node scripts/capture-ready.cjs 'https://geogeeklab.github.io/earth-pulse/?qa=pending' assets/analysis.png analysis 1
           test -s assets/instrument.png
+          test -s assets/analysis.png
           curl --fail --silent --show-error --location 'https://geogeeklab.github.io/data/snapshots/usgs-earthquakes-day.meta.json' -o /tmp/usgs-meta.json
           jq -e '(.fetchedAt|type=="string") and (.sha256|type=="string")' /tmp/usgs-meta.json >/dev/null
       - uses: actions/configure-pages@v5
