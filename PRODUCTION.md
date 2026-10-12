@@ -5,7 +5,7 @@
 ## Runtime
 
 - Source repository: `GeoGeekLab/GeoGeekLab.github.io`
-- Inspected source revision (production QA pending): `12743de0f7d0e900031ec2cbbe17551255e271a5`
+- Verified source reference (PR and deployed Pages Chromium QA on 2026-10-12): `12743de0f7d0e900031ec2cbbe17551255e271a5`
 - Bootstrap asset release: `20261004b` (shared loader constant; distinct from the Lab HTML release)
 - Production channel: `https://geogeeklab.github.io/`
 - Shared bootstrap: `/core/observatory-entry.js`
@@ -29,3 +29,12 @@ The repository validates the source revision, shared bootstrap reference, Chromi
 The standalone entry now has OBSERVE / ANALYZE task controls. Analyze uses the original 24-hour source or an explicit USGS FDSN historical query and does not bypass the main-site same-origin snapshot routing. Its optional workflow modules load before the base instrument mounts and may degrade without preventing the OBSERVE view. The reference source SHA identifies the main-site tree inspected for this alignment, not immutable historical hosting; assets are always served from the current shared GitHub Pages origin.
 
 Lab reference: https://geogeeklab.github.io/lab.html?release=20261011v107watercache1
+
+## Deployment verification (2026-10-12)
+
+- PR-only Chromium smoke: **passed** before merge.
+- Production Pages deploy: **passed**.
+- Deployed public instrument Chromium check: **passed**.
+- Evidence: [GitHub Actions deployment run](https://github.com/GeoGeekLab/earth-pulse/actions/runs/38198063425).
+
+These checks validate the deployed entrypoint and its current shared-origin dependencies. They do not make external data feeds, source assets, or orbit/earthquake conditions immutable.
