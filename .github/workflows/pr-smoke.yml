@@ -8,7 +8,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Validate release source and files
@@ -34,10 +34,19 @@ jobs:
           NODE_PATH: /tmp/geogeek-pr-qa/node_modules
           INSTRUMENT: earth-pulse
         run: node scripts/pr-smoke.cjs
+      - name: Verify rendered screenshots
+        env:
+          PLAYWRIGHT_PATH: /tmp/geogeek-pr-qa/node_modules/playwright
+        run: |
+          node --check scripts/capture-ready.cjs
+          node scripts/capture-ready.cjs 'https://geogeeklab.github.io/earth-pulse/?qa=pending' assets/instrument.png overview 1
+          node scripts/capture-ready.cjs 'https://geogeeklab.github.io/earth-pulse/?qa=pending' assets/analysis.png analysis 1
       - name: Upload screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pr-smoke
-          path: pr-smoke.png
+          path: |
+            pr-smoke.png
+            assets/*.png
           if-no-files-found: ignore
