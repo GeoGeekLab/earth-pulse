@@ -1,0 +1,43 @@
+name: PR instrument smoke
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate release source and files
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, re
+          source=json.loads(pathlib.Path('SOURCE.json').read_text())
+          sha=source['source_commit']
+          assert source['role']=='entrypoint'
+          assert re.fullmatch('[0-9a-f]{40}',sha)
+          assert source['lab_reference_release']=='20261011v107watercache1'
+          for filename in ('index.html','PRODUCTION.md'):
+              assert sha in pathlib.Path(filename).read_text(), filename
+          assert 'https://geogeeklab.github.io/core/observatory-entry.js' in pathlib.Path('index.html').read_text()
+          PY
+          node --check scripts/pr-smoke.cjs
+      - name: Install Chromium test runner
+        run: |
+          npm install --prefix /tmp/geogeek-pr-qa --no-package-lock --no-save playwright@1.55.0
+          /tmp/geogeek-pr-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Check pending instrument in Chromium
+        env:
+          NODE_PATH: /tmp/geogeek-pr-qa/node_modules
+          INSTRUMENT: earth-pulse
+        run: node scripts/pr-smoke.cjs
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-smoke
+          path: pr-smoke.png
+          if-no-files-found: ignore
