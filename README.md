@@ -2,7 +2,7 @@
 
 <!-- GeoGeekLab VIS: BEGIN -->
 <p align="center">
-  <a href="https://github.com/GeoGeekLab/geogeeklab-visual-identity/tree/main/logos/scientific-instruments/official-candidates-v1/earth-pulse"><img src="https://raw.githubusercontent.com/GeoGeekLab/geogeeklab-visual-identity/main/logos/scientific-instruments/official-candidates-v1/earth-pulse/readme-hero.svg" alt="Earth Pulse — earthquake catalog and seismic waveform visual identity" width="720"></a>
+  <img src="https://raw.githubusercontent.com/GeoGeekLab/geogeeklab-visual-identity/main/readme-artwork/v3/earth-pulse/readme-artwork.webp" alt="Earth Pulse waveform and seismic source symbol" width="390">
 </p>
 <!-- GeoGeekLab VIS: END -->
 
