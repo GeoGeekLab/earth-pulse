@@ -1,5 +1,11 @@
 # Earth Pulse
 
+<!-- GeoGeekLab VIS: BEGIN -->
+<p align="center">
+  <a href="https://github.com/GeoGeekLab/geogeeklab-visual-identity/tree/main/logos/scientific-instruments/official-candidates-v1/earth-pulse"><img src="https://raw.githubusercontent.com/GeoGeekLab/geogeeklab-visual-identity/main/logos/scientific-instruments/official-candidates-v1/earth-pulse/readme-hero.svg" alt="Earth Pulse — earthquake catalog and seismic waveform visual identity" width="720"></a>
+</p>
+<!-- GeoGeekLab VIS: END -->
+
 **Seismicity · temporal windows · geographic ROI · spatial aggregation**
 
 *Earth Pulse* is a GIS workspace for observing and analyzing global earthquakes. It combines time-filtered seismic catalogs, an interactive geographic field, event inspection, spatial selection, and comparative statistics.
